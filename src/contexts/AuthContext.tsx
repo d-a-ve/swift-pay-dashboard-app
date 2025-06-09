@@ -6,12 +6,19 @@ interface User {
   email: string;
   name: string;
   balance: number;
+  role: 'client' | 'vendor' | 'admin';
+  vendorInfo?: {
+    businessName: string;
+    category: string;
+    description: string;
+    isVerified: boolean;
+  };
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, name: string) => Promise<boolean>;
+  register: (email: string, password: string, name: string, role: string, vendorInfo?: any) => Promise<boolean>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   isAuthenticated: boolean;
@@ -52,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return false;
   };
 
-  const register = async (email: string, password: string, name: string): Promise<boolean> => {
+  const register = async (email: string, password: string, name: string, role: string, vendorInfo?: any): Promise<boolean> => {
     // Simulate API call
     const users = JSON.parse(localStorage.getItem('swift-pay-users') || '[]');
     const existingUser = users.find((u: any) => u.email === email);
@@ -66,7 +73,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       email,
       password,
       name,
-      balance: 1000 // Starting balance
+      balance: role === 'client' ? 1000 : role === 'vendor' ? 500 : 10000, // Different starting balances
+      role,
+      ...(role === 'vendor' && vendorInfo && { vendorInfo })
     };
 
     users.push(newUser);

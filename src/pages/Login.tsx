@@ -13,7 +13,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -28,7 +28,18 @@ const Login = () => {
           title: "Welcome back!",
           description: "You have successfully logged in.",
         });
-        navigate('/dashboard');
+        
+        // Redirect based on user role
+        const users = JSON.parse(localStorage.getItem('swift-pay-users') || '[]');
+        const loggedInUser = users.find((u: any) => u.email === email);
+        
+        if (loggedInUser) {
+          const redirectPath = loggedInUser.role === 'admin' ? '/admin' : 
+                              loggedInUser.role === 'vendor' ? '/vendor' : '/dashboard';
+          navigate(redirectPath);
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         toast({
           title: "Login failed",

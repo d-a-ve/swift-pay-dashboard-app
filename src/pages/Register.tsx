@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +15,10 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [category, setCategory] = useState('');
+  const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const { toast } = useToast();
@@ -31,16 +36,36 @@ const Register = () => {
       return;
     }
 
+    if (role === 'vendor' && (!businessName || !category)) {
+      toast({
+        title: "Vendor information required",
+        description: "Please fill in your business details.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const success = await register(email, password, name);
+      const vendorInfo = role === 'vendor' ? {
+        businessName,
+        category,
+        description,
+        isVerified: false
+      } : undefined;
+
+      const success = await register(email, password, name, role, vendorInfo);
       if (success) {
         toast({
           title: "Account created!",
-          description: "Welcome to SwiftPay. You've received $1,000 as a welcome bonus!",
+          description: `Welcome to SwiftPay${role === 'vendor' ? '. Your vendor account is pending verification.' : '!'}`,
         });
-        navigate('/dashboard');
+        
+        // Redirect based on role
+        const redirectPath = role === 'admin' ? '/admin' : 
+                            role === 'vendor' ? '/vendor' : '/dashboard';
+        navigate(redirectPath);
       } else {
         toast({
           title: "Registration failed",
@@ -89,6 +114,7 @@ const Register = () => {
                   required
                 />
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -100,6 +126,64 @@ const Register = () => {
                   required
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role">Account Type</Label>
+                <Select value={role} onValueChange={setRole} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="client">Personal Account</SelectItem>
+                    <SelectItem value="vendor">Business Account</SelectItem>
+                    <SelectItem value="admin">Admin Account</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {role === 'vendor' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="businessName">Business Name</Label>
+                    <Input
+                      id="businessName"
+                      type="text"
+                      placeholder="Enter your business name"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Business Category</Label>
+                    <Select value={category} onValueChange={setCategory} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select business category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="retail">Retail</SelectItem>
+                        <SelectItem value="food">Food & Beverage</SelectItem>
+                        <SelectItem value="services">Professional Services</SelectItem>
+                        <SelectItem value="utilities">Utilities</SelectItem>
+                        <SelectItem value="entertainment">Entertainment</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Business Description</Label>
+                    <Input
+                      id="description"
+                      type="text"
+                      placeholder="Brief description of your business"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -111,6 +195,7 @@ const Register = () => {
                   required
                 />
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
@@ -122,6 +207,7 @@ const Register = () => {
                   required
                 />
               </div>
+              
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Create Account"}
               </Button>

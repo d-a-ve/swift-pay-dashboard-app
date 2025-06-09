@@ -3,18 +3,40 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link, useLocation } from "react-router-dom";
-import { Wallet, Send, History, User, LogOut } from "lucide-react";
+import { Wallet, Send, History, User, LogOut, Store, Package, Users, Settings } from "lucide-react";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Wallet },
-    { name: 'Send Money', href: '/send-money', icon: Send },
-    { name: 'Transactions', href: '/transactions', icon: History },
-    { name: 'Profile', href: '/profile', icon: User },
-  ];
+  const getNavigation = () => {
+    switch (user?.role) {
+      case 'admin':
+        return [
+          { name: 'Admin Dashboard', href: '/admin', icon: Users },
+          { name: 'Transactions', href: '/transactions', icon: History },
+          { name: 'Profile', href: '/profile', icon: User },
+        ];
+      case 'vendor':
+        return [
+          { name: 'Vendor Dashboard', href: '/vendor', icon: Store },
+          { name: 'Transactions', href: '/transactions', icon: History },
+          { name: 'Fund Wallet', href: '/fund-wallet', icon: Wallet },
+          { name: 'Profile', href: '/profile', icon: User },
+        ];
+      case 'client':
+      default:
+        return [
+          { name: 'Dashboard', href: '/dashboard', icon: Wallet },
+          { name: 'Send Money', href: '/send-money', icon: Send },
+          { name: 'Marketplace', href: '/marketplace', icon: Store },
+          { name: 'Transactions', href: '/transactions', icon: History },
+          { name: 'Profile', href: '/profile', icon: User },
+        ];
+    }
+  };
+
+  const navigation = getNavigation();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -25,9 +47,19 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             <div className="flex items-center space-x-2">
               <Wallet className="h-8 w-8 text-blue-600" />
               <span className="text-2xl font-bold text-gray-900">SwiftPay</span>
+              {user?.role && (
+                <span className="text-sm text-gray-500 capitalize">
+                  ({user.role})
+                </span>
+              )}
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
+              {user?.role === 'vendor' && user?.vendorInfo && (
+                <span className="text-xs text-gray-500">
+                  {user.vendorInfo.businessName}
+                </span>
+              )}
               <Button variant="outline" size="sm" onClick={logout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
