@@ -18,7 +18,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, name: string, role: string, vendorInfo?: any) => Promise<boolean>;
+  register: (email: string, password: string, name: string, role: 'client' | 'vendor' | 'admin', vendorInfo?: any) => Promise<boolean>;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   isAuthenticated: boolean;
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return false;
   };
 
-  const register = async (email: string, password: string, name: string, role: string, vendorInfo?: any): Promise<boolean> => {
+  const register = async (email: string, password: string, name: string, role: 'client' | 'vendor' | 'admin', vendorInfo?: any): Promise<boolean> => {
     // Simulate API call
     const users = JSON.parse(localStorage.getItem('swift-pay-users') || '[]');
     const existingUser = users.find((u: any) => u.email === email);
