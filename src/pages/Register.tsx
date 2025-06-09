@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,7 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'client' | 'vendor' | 'admin' | ''>('');
+  const [role, setRole] = useState<string>('');
   const [businessName, setBusinessName] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
@@ -63,7 +64,7 @@ const Register = () => {
         isVerified: false
       } : undefined;
 
-      const success = await register(email, password, name, role, vendorInfo);
+      const success = await register(email, password, name, role as 'client' | 'vendor' | 'admin', vendorInfo);
       if (success) {
         toast({
           title: "Account created!",
